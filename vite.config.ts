@@ -19,7 +19,7 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    port: 5111,
+    port: 5171,
     strictPort: true,
 
     ...(process.env.NODE_ENV === "development" &&
