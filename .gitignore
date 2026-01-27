@@ -33,3 +33,6 @@ db.sqlite
 *.pem
 *.pub
 *.crt
+
+# Ignore experimental specs
+.specs
