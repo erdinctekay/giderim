@@ -39,6 +39,7 @@ import {
   IconKeyFilled,
   IconLanguageHiragana,
   IconNumber123,
+  IconSquareArrowUpFilled,
   IconTagsFilled,
   IconTrashXFilled,
   type TablerIcon,
@@ -47,6 +48,8 @@ import {
 import type React from "react";
 
 import { useRef } from "react";
+
+import { exportData } from "@/lib/export";
 
 function SettingsRow({
   title,
@@ -251,18 +254,23 @@ export function SettingsScreen() {
                     <IconChevronRight className="size-4 ml-1  relative -mr-1" />
                   </Button>
                 </SettingsRow>
-                {/* <SettingsRow Icon={IconSquareArrowUpFilled} iconBackground="bg-cyan-500" title={m.ExportData()}>
-									<Button
-										size="sm"
-										variant="outline"
-										className="rounded"
-										onClick={() => {
-											// tagDrawerRef.current?.openDrawer();
-										}}
-									>
-										{m.Export()} <IconChevronRight className="size-4 ml-1  relative -mr-1" />
-									</Button>
-								</SettingsRow> */}
+                <SettingsRow
+                  Icon={IconSquareArrowUpFilled}
+                  iconBackground="bg-cyan-500"
+                  title={m.ExportData()}
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded"
+                    onClick={() => {
+                      exportData();
+                    }}
+                  >
+                    {m.Export()}{" "}
+                    <IconChevronRight className="size-4 ml-1 relative -mr-1" />
+                  </Button>
+                </SettingsRow>
                 <SettingsRow
                   Icon={IconTrashXFilled}
                   iconBackground="bg-red-500"
