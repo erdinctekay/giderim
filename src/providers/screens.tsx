@@ -41,10 +41,11 @@ export const ScreensProvider: React.FC<{ children: ReactNode }> = ({ children })
 		() => populateEntries(entries.rows, recurringConfigs.rows),
 		[entries.rows, recurringConfigs.rows],
 	);
-	// user can view 12 months into the past
-	const viewportStartDate = dayjs().startOf("month").subtract(12, "month");
-	// user can only view 12 months into the future
-	const viewportEndDate = dayjs().startOf("month").add(11, "month");
+
+	// No limits - users can navigate to any date, past or future
+	// This allows adding historical data or planning far ahead
+	const viewportStartDate = dayjs("1900-01-01").startOf("month");
+	const viewportEndDate = dayjs("2100-12-31").startOf("month");
 
 	const [screen, setScreen] = useState<TScreenId>("calendar");
 

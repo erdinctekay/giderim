@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { CalendarYearMonthPicker } from "@/components/custom/v2/calendar-year-month-picker";
 import { useLocalization } from "@/hooks/use-localization";
 import { useScreens } from "@/hooks/use-screens";
 import { cn } from "@/lib/utils";
@@ -9,72 +10,55 @@ export function CalendarMonthSwitcher(): React.ReactElement {
 	const {
 		activeScreen,
 		calendarIndex,
-		viewingIndex,
-		viewportEndDate,
-		viewportStartDate,
 		setCalendarIndex,
 		isViewingCurrentMonth,
 	} = useScreens();
 	const { m } = useLocalization();
-
-	const currentMonth = dayjs().format("YYYY-MM");
-
-	const isPrevDisabled = viewingIndex === 0;
-	const isNextDisabled = viewingIndex === viewportEndDate.diff(viewportStartDate, "month");
 
 	if (activeScreen !== "calendar") {
 		return <></>;
 	}
 
 	return (
-		<>
-			<div className="w-full relative flex justify-center">
-				<div className="inline-flex items-center justify-between">
-					<Button
-						onClick={() => {
-							setCalendarIndex(dayjs(calendarIndex).subtract(1, "month").format("YYYY-MM"));
-						}}
-						size="icon"
-						variant="ghost"
-						disabled={isPrevDisabled}
-						className={cn(isPrevDisabled && "opacity-20")}
-					>
-						<span className="sr-only">{m.PreviousMonth()}</span>
-						<IconChevronLeft className="size-6" />
-					</Button>
+		<div className="w-full relative flex justify-center">
+			<div className="inline-flex items-center justify-between">
+				<Button
+					onClick={() => {
+						setCalendarIndex(dayjs(calendarIndex).subtract(1, "month").format("YYYY-MM"));
+					}}
+					size="icon"
+					variant="ghost"
+				>
+					<span className="sr-only">{m.PreviousMonth()}</span>
+					<IconChevronLeft className="size-6" />
+				</Button>
+				<CalendarYearMonthPicker>
 					<button
 						className={cn(
-							"tabular-nums text-sm font-semibold min-w-48 space-x-2 text-center relative flex items-center justify-center",
+							"tabular-nums text-sm font-semibold min-w-48 h-10 space-x-2 text-center relative flex items-center justify-center",
+							"rounded-md transition-colors hover:bg-accent hover:text-accent-foreground",
 							isViewingCurrentMonth && "text-foreground",
 						)}
-						onClick={() => {
-							if (isViewingCurrentMonth) return;
-							setCalendarIndex(currentMonth);
-						}}
 					>
-						<span className={cn("flex items-center pr-2 rounded-full h-7", isViewingCurrentMonth ? "pl-2" : "")}>
+						<span className={cn("flex items-center", isViewingCurrentMonth ? "px-2" : "")}>
 							{!isViewingCurrentMonth && (
-								// <Button size="iconXs" variant="default" className="rounded-full size-7 mr-1.5">
 								<IconRestore className="size-4 mr-1.5" />
-								// </Button>
 							)}
 							<span>{dayjs(new Date(calendarIndex)).format("MMMM, YYYY")}</span>
 						</span>
 					</button>
-					<Button
-						disabled={isNextDisabled}
-						size="icon"
-						variant="ghost"
-						className={cn(isNextDisabled && "opacity-20")}
-						onClick={() => {
-							setCalendarIndex(dayjs(calendarIndex).add(1, "month").format("YYYY-MM"));
-						}}
-					>
-						<span className="sr-only">{m.NextMonth()}</span>
-						<IconChevronRight className="size-6" />
-					</Button>
-				</div>
+				</CalendarYearMonthPicker>
+				<Button
+					size="icon"
+					variant="ghost"
+					onClick={() => {
+						setCalendarIndex(dayjs(calendarIndex).add(1, "month").format("YYYY-MM"));
+					}}
+				>
+					<span className="sr-only">{m.NextMonth()}</span>
+					<IconChevronRight className="size-6" />
+				</Button>
 			</div>
-		</>
+		</div>
 	);
 }
