@@ -1,0 +1,15 @@
+services:
+  evolu-server:
+    container_name: evolu-server
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      - CORS_ALLOWED_DOMAINS=*
+    volumes:
+      - evolu-server-data:/data
+    restart: unless-stopped
+
+volumes:
+  evolu-server-data:
+    driver: local

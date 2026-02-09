@@ -24,7 +24,10 @@ dev-dist
 *.sln
 *.sw?
 
-# Sentry Config File
+# Environment files
+.env
+.env.local
+.env.production
 .env.sentry-build-plugin
 
 

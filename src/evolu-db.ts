@@ -120,10 +120,10 @@ export const evolu = createEvolu(EvoluDB, {
   // minimumLogLevel: "trace",
   // name: "gider.im",
   indexes,
-  // ...(process.env.NODE_ENV === "development" && {
-  // 	syncUrl: "http://localhost:4000",
-  // }),
-  // enableWebsocketConnection: true,
+  ...(import.meta.env.VITE_SYNC_URL && {
+  	syncUrl: import.meta.env.VITE_SYNC_URL,
+  	enableWebsocketConnection: true,
+  }),
 });
 
 export type TEvoluDB = typeof EvoluDB.Type;
