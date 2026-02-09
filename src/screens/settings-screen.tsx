@@ -16,6 +16,10 @@ import {
   type EraseDataDrawerRef,
 } from "@/components/custom/v2/erase-data-drawer";
 import {
+  ImportDataDrawer,
+  type ImportDataDrawerRef,
+} from "@/components/custom/v2/import-data-drawer";
+import {
   PrivateKeyDrawer,
   type PrivateKeyDrawerRef,
 } from "@/components/custom/v2/private-key-drawer";
@@ -33,6 +37,7 @@ import {
   IconChevronRight,
   IconCloudDownload,
   IconContrastFilled,
+  IconDatabaseImport,
   IconDecimal,
   IconEyeFilled,
   IconHeartFilled,
@@ -84,6 +89,7 @@ export function SettingsScreen() {
   const groupDrawerRef = useRef<GroupDrawerRef>(null);
   const tagDrawerRef = useRef<TagDrawerRef>(null);
   const eraseDataDrawerRef = useRef<EraseDataDrawerRef>(null);
+  const importDataDrawerRef = useRef<ImportDataDrawerRef>(null);
   const privateKeyDrawerRef = useRef<PrivateKeyDrawerRef>(null);
   const restoreKeyDrawerRef = useRef<RestoreKeyDrawerRef>(null);
   const sponsorsEnabled = false;
@@ -208,18 +214,6 @@ export function SettingsScreen() {
                 Data
               </h1>
               <div className="px-2 -mx-2 text-sm flex flex-col gap-1">
-                {/* <SettingsRow Icon={IconSquareArrowDownFilled} iconBackground="bg-lime-500" title="Import data">
-									<Button
-										size="sm"
-										variant="outline"
-										className="rounded"
-										onClick={() => {
-											// tagDrawerRef.current?.openDrawer();
-										}}
-									>
-										Import <IconChevronRight className="size-4 ml-1  relative -mr-1" />
-									</Button>
-								</SettingsRow> */}
                 <SettingsRow
                   Icon={IconKeyFilled}
                   iconBackground="bg-pink-500"
@@ -268,6 +262,23 @@ export function SettingsScreen() {
                     }}
                   >
                     {m.Export()}{" "}
+                    <IconChevronRight className="size-4 ml-1 relative -mr-1" />
+                  </Button>
+                </SettingsRow>
+                <SettingsRow
+                  Icon={IconDatabaseImport}
+                  iconBackground="bg-lime-500"
+                  title={m.ImportData()}
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded"
+                    onClick={() => {
+                      importDataDrawerRef.current?.openDrawer();
+                    }}
+                  >
+                    {m.Import()}{" "}
                     <IconChevronRight className="size-4 ml-1 relative -mr-1" />
                   </Button>
                 </SettingsRow>
@@ -531,6 +542,7 @@ export function SettingsScreen() {
       <GroupDrawer ref={groupDrawerRef} />
       <TagDrawer ref={tagDrawerRef} />
       <EraseDataDrawer ref={eraseDataDrawerRef} />
+      <ImportDataDrawer ref={importDataDrawerRef} />
       <PrivateKeyDrawer ref={privateKeyDrawerRef} />
       <RestoreKeyDrawer ref={restoreKeyDrawerRef} />
     </>

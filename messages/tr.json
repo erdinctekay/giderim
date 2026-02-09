@@ -167,5 +167,14 @@
 	"DeprecationTitle": "Bu Sürüm Artık Desteklenmiyor",
 	"DeprecationDescription": "gider.im'in yeni ve geliştirilmiş sürümüne geçtik. Bu PWA sürümü artık güncelleme veya destek almayacak. Finanslarınızı yönetmeye devam etmek için lütfen yeni uygulamamızı ziyaret edin.",
 	"GoToNewApp": "Yeni Uygulamaya Git",
-	"ContinueAnyway": "Yine de devam et"
+	"ContinueAnyway": "Yine de devam et",
+	"ImportData": "Verileri içe aktar",
+	"Import": "İçe aktar",
+	"ImportDataDesc": "Verilerinizi geri yüklemek için bir veritabanı yedek dosyası (.db) seçin. Bu, mevcut tüm verilerin yerini alacaktır.",
+	"ImportDataWarning": "Bu işlem, bu cihazdaki mevcut tüm verilerin üzerine yazacaktır. Gerekirse önce mevcut verilerinizi dışa aktarın.",
+	"ImportFailed": "İçe aktarma başarısız oldu. Dosyayı kontrol edip tekrar deneyin.",
+	"SelectDatabaseFile": "Veritabanı dosyası seçin",
+	"SelectYearMonth": "Yıl ve ay seçin",
+	"Today": "Bugün",
+	"Apply": "Uygula"
 }

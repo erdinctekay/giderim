@@ -176,5 +176,14 @@
 	"Loading": "Loading...",
 	"MadeBy": "Made by",
 	"MonthlyOverview": "Monthly overview",
-	"Reload": "Reload the app"
+	"Reload": "Reload the app",
+	"ImportData": "Import data",
+	"Import": "Import",
+	"ImportDataDesc": "Select a database backup file (.db) to restore your data. This will replace all current data.",
+	"ImportDataWarning": "This will overwrite all existing data on this device. Make sure to export your current data first if needed.",
+	"ImportFailed": "Import failed. Please check the file and try again.",
+	"SelectDatabaseFile": "Select database file",
+	"SelectYearMonth": "Select year and month",
+	"Today": "Today",
+	"Apply": "Apply"
 }
