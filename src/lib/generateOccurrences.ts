@@ -41,24 +41,33 @@ export const generateOccurrences = (
     dayOfMonth: number | null;
   } | null = null;
 
+  let deletionForFuture = false;
+
   let logicalIndex = 0;
   for (let i = 0; i < diff; i += every) {
     const currDate = dayjs(startDate).add(i, frequency);
     logicalIndex++;
 
-    const isExcluded = exclusions.some(
-      (e) =>
-        (currDate.isSame(dayjs(e.date), "day") || e.index === i + 1) &&
-        e.reason === "deletion"
+    if (deletionForFuture) continue;
+
+    const matchingExclusions = exclusions.filter(
+      (e) => currDate.isSame(dayjs(e.date), "day") || e.index === i + 1
     );
 
-    const isModified = exclusions.find(
-      (e) =>
-        (currDate.isSame(dayjs(e.date), "day") || e.index === i + 1) &&
-        e.reason === "modification"
+    const deletionExclusion = matchingExclusions.find(
+      (e) => e.reason === "deletion"
     );
 
-    if (isModified && !!isModified?.applyToSubsequents) {
+    if (deletionExclusion?.applyToSubsequents) {
+      deletionForFuture = true;
+      continue;
+    }
+
+    const isModified = matchingExclusions.find(
+      (e) => e.reason === "modification"
+    );
+
+    if (isModified?.applyToSubsequents) {
       occurenceForFuture = {
         amount: isModified.modifiedEntry!.amount as TAmountString,
         fullfilled: decodeBoolean(0),
@@ -68,7 +77,7 @@ export const generateOccurrences = (
       };
     }
 
-    if (!isExcluded) {
+    if (!deletionExclusion) {
       const modEntry = isModified
         ? isModified.modifiedEntry
         : occurenceForFuture

@@ -4,6 +4,7 @@ import { Tag } from "@/components/custom/tag";
 import type { TagColor } from "@/components/custom/tag-color-picker";
 import { predictPreset } from "@/components/custom/v2/add-entry/recurrence-preset-select";
 import { VerticalScrollView } from "@/components/custom/v2/vertical-scroll-view";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Drawer,
@@ -13,11 +14,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+import { deleteEntry } from "@/lib/delete";
 import { useLocalization } from "@/hooks/use-localization";
 import type { TPopulatedEntry } from "@/lib/populateEntries";
 import { cn, getEntryHistory } from "@/lib/utils";
-import { IconInfinity, IconPointFilled, IconRotateClockwise2 } from "@tabler/icons-react";
+import { IconExclamationCircleFilled, IconInfinity, IconPointFilled, IconRotateClockwise2 } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { motion } from "framer-motion";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
@@ -31,6 +34,8 @@ export const EntryDetailDrawer = forwardRef<EntryDetailDrawerRef, {}>((_, ref) =
 	const [open, setOpen] = useState(false);
 	const [entry, setEntry] = useState<TPopulatedEntry>();
 	const [history, setHistory] = useState<TPopulatedEntry[]>([]);
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [applyToSubsequents, setApplyToSubsequents] = useState(false);
 	const editDrawerRef = useRef<EntryEditDrawerRef>(null);
 
 	const { m } = useLocalization();
@@ -52,6 +57,11 @@ export const EntryDetailDrawer = forwardRef<EntryDetailDrawerRef, {}>((_, ref) =
 			});
 		}
 	}, [open, entry]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	useEffect(() => {
+		setApplyToSubsequents(false);
+	}, [entry]);
 
 	const total = useMemo(
 		() => history.reduce((acc, h) => acc + (h.details.fullfilled ? Number(h.details.amount) : 0), 0),
@@ -225,7 +235,7 @@ export const EntryDetailDrawer = forwardRef<EntryDetailDrawerRef, {}>((_, ref) =
 						variant="destructive"
 						size="lg"
 						onClick={() => {
-							// copyToClipboard(owner?.mnemonic || "");
+							setShowDeleteDialog(true);
 						}}
 					>
 						{m.Delete()}
@@ -233,6 +243,71 @@ export const EntryDetailDrawer = forwardRef<EntryDetailDrawerRef, {}>((_, ref) =
 				</DrawerFooter>
 
 				<EntryEditDrawer onSave={() => setOpen(false)} ref={editDrawerRef} />
+
+				<Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+					<DialogContent className="sm:max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
+						<DialogHeader>
+							<DialogTitle>{m.Delete()}</DialogTitle>
+						</DialogHeader>
+						<div className="flex flex-col gap-4">
+							<p className="text-sm text-muted-foreground">
+								{m.AreYouSure()}
+							</p>
+							{!!entry?.recurringConfigId && (
+								<div className="flex items-center space-x-2">
+									<input
+										id="delete-subsequents"
+										type="checkbox"
+										checked={applyToSubsequents}
+										onChange={() => {
+											setApplyToSubsequents(!applyToSubsequents);
+										}}
+										className={cn(
+											"size-5 rounded-xs border-2 m-1 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sky-600 dark:checked:bg-sky-600 dark:checked:border-sky-600 focus:ring-2 focus:ring-transparent dark:focus:ring-transparent",
+										)}
+									/>
+									<label htmlFor="delete-subsequents" className="text-sm font-medium leading-none">
+										{m.ApplyToSubsequents()}
+									</label>
+								</div>
+							)}
+							<motion.div
+								initial={{ height: 0 }}
+								animate={applyToSubsequents ? { height: "auto" } : { height: 0 }}
+								className="overflow-hidden"
+							>
+								<Alert variant="warning">
+									<IconExclamationCircleFilled className="size-6 dark:text-yellow-950" />
+									<AlertTitle>{m.Warning()}</AlertTitle>
+									<AlertDescription>{m.FutureEntriesWillBeDeleted()}</AlertDescription>
+								</Alert>
+							</motion.div>
+						</div>
+						<DialogFooter className="sm:justify-between gap-2">
+							<Button
+								variant="secondary"
+								onClick={() => {
+									setShowDeleteDialog(false);
+								}}
+							>
+								{m.Cancel()}
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={() => {
+									if (entry) {
+										deleteEntry(entry, applyToSubsequents, () => {
+											setShowDeleteDialog(false);
+											setOpen(false);
+										});
+									}
+								}}
+							>
+								{m.Delete()}
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</DrawerContent>
 		</Drawer>
 	);

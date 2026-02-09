@@ -13,7 +13,7 @@ export const deleteTag = (tagId: TTagId) => {
 
 export async function deleteEntry(
   entry: TPopulatedEntry,
-  withSubsequents = false,
+  applyToSubsequents = false,
   onComplete: () => void = () => {}
 ) {
   // if it's an exclusion
@@ -21,7 +21,24 @@ export async function deleteEntry(
     evolu.update("exclusion", {
       id: entry.exclusionId,
       reason: "deletion",
+      applyToSubsequents,
     });
+
+    if (applyToSubsequents) {
+      const allExclusions = await evolu.loadQuery(
+        exclusionsQuery(entry.recurringConfigId!)
+      );
+
+      allExclusions.rows
+        .filter((ex) => dayjs(ex.date).isAfter(dayjs(entry.date)))
+        .forEach((ex) => {
+          evolu.update("exclusion", {
+            id: ex.exclusionId,
+            isDeleted: true,
+          });
+        });
+    }
+
     // if it's a single entry
   } else if (entry.id && !entry.recurringConfigId) {
     evolu.update("entry", { id: entry.id, isDeleted: true });
@@ -32,48 +49,23 @@ export async function deleteEntry(
       date: entry.date,
       index: entry.index,
       reason: "deletion",
-      applyToSubsequents: withSubsequents,
+      applyToSubsequents,
       modifiedEntryId: null,
     });
-  }
 
-  if (withSubsequents && entry.recurringConfigId) {
-    const allExclusions = await evolu.loadQuery(
-      exclusionsQuery(entry.recurringConfigId)
-    );
+    if (applyToSubsequents) {
+      const allExclusions = await evolu.loadQuery(
+        exclusionsQuery(entry.recurringConfigId!)
+      );
 
-    if (entry.index === 0) {
-      // we are deleting main entry, so delete recurring config also
-      evolu.update("recurringConfig", {
-        id: entry.recurringConfigId,
-        isDeleted: true,
-      });
-
-      allExclusions.rows.map((ex) => {
-        evolu.update("exclusion", {
-          id: ex.exclusionId,
-          isDeleted: true,
-        });
-      });
-    } else {
-      // delete exclusions after this date
       allExclusions.rows
         .filter((ex) => dayjs(ex.date).isAfter(dayjs(entry.date)))
-        .map((ex) => {
+        .forEach((ex) => {
           evolu.update("exclusion", {
             id: ex.exclusionId,
             isDeleted: true,
           });
         });
-
-      // modify main entry's endDate and internal
-      evolu.update("recurringConfig", {
-        id: entry.recurringConfigId,
-        endDate: entry.date,
-        every: entry.recurringConfig?.every || 1,
-        interval: entry.index - 1,
-        isDeleted: entry.index - 1 === 0, // if it's the last one, mark as deleted
-      });
     }
   }
 

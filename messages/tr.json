@@ -163,6 +163,7 @@
 	"Export": "Dışa aktar",
 	"Warning": "Dikkat!",
 	"FutureEntriesWillBeOverwritten": "Gelecekteki kayıtların üzerine yazılacak.",
+	"FutureEntriesWillBeDeleted": "Gelecekteki kayıtlar silinecek.",
 	"DeprecationTitle": "Bu Sürüm Artık Desteklenmiyor",
 	"DeprecationDescription": "gider.im'in yeni ve geliştirilmiş sürümüne geçtik. Bu PWA sürümü artık güncelleme veya destek almayacak. Finanslarınızı yönetmeye devam etmek için lütfen yeni uygulamamızı ziyaret edin.",
 	"GoToNewApp": "Yeni Uygulamaya Git",
