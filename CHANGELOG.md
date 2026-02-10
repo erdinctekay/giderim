@@ -1,5 +1,17 @@
 # giderim
 
+## 1.0.1
+
+### Patch Changes
+
+- Added redirect handler and improve calendar calculation performance for all-time navigation to take performance back which lost on commit `7c76256`
+
+  This release includes:
+
+  - add redirect handler before bootstrap (`0445b57`)
+  - optimized monthly calculations by removing full-range precomputation (`7ece1c6`)
+  - reduced unnecessary work during month navigation (`7ece1c6`)
+
 ## 1.0.0
 
 ### Major Changes
