@@ -8,7 +8,7 @@ import {
 	DrawerTitle,
 } from "@/components/ui/drawer";
 import { useLocalization } from "@/hooks/use-localization";
-import { importDatabase } from "@/lib/import";
+import { importDatabase, importLogicalData } from "@/lib/import";
 import { IconDatabaseImport } from "@tabler/icons-react";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 
@@ -17,8 +17,15 @@ export interface ImportDataDrawerRef {
 	closeDrawer: () => void;
 }
 
-export const ImportDataDrawer = forwardRef<ImportDataDrawerRef, {}>(
-	(_, ref) => {
+interface ImportDataDrawerProps {
+	mode?: "backup" | "logical";
+}
+
+export const ImportDataDrawer = forwardRef<
+	ImportDataDrawerRef,
+	ImportDataDrawerProps
+>(
+	({ mode = "backup" }: ImportDataDrawerProps, ref) => {
 		const [open, setOpen] = useState(false);
 		const [selectedFile, setSelectedFile] = useState<File | null>(null);
 		const [importing, setImporting] = useState(false);
@@ -52,7 +59,12 @@ export const ImportDataDrawer = forwardRef<ImportDataDrawerRef, {}>(
 			setError(null);
 
 			try {
-				await importDatabase(selectedFile);
+				if (mode === "logical") {
+					await importLogicalData(selectedFile);
+					window.location.reload();
+				} else {
+					await importDatabase(selectedFile);
+				}
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : m.ImportFailed(),
@@ -66,16 +78,20 @@ export const ImportDataDrawer = forwardRef<ImportDataDrawerRef, {}>(
 				<DrawerContent className="pb-6 max-w-md mx-auto">
 					<DrawerHeader>
 						<IconDatabaseImport className="text-cyan-600 w-12 h-12 mx-auto mb-2" />
-						<DrawerTitle>{m.ImportData()}</DrawerTitle>
+						<DrawerTitle>{mode === "logical" ? m.ImportJsonTitle() : m.ImportBackupTitle()}</DrawerTitle>
 						<DrawerDescription className="text-balance">
-							{m.ImportDataDesc()}
+							{mode === "logical" ? m.ImportJsonDesc() : m.ImportBackupDesc()}
 						</DrawerDescription>
 					</DrawerHeader>
 					<div className="mx-4 flex flex-col gap-3">
 						<input
 							ref={fileInputRef}
 							type="file"
-							accept=".db,.sqlite,.sqlite3,.txt"
+							accept={
+								mode === "logical"
+									? ".json"
+									: ".db,.sqlite,.sqlite3,.txt"
+							}
 							onChange={handleFileSelect}
 							className="hidden"
 						/>
@@ -87,16 +103,18 @@ export const ImportDataDrawer = forwardRef<ImportDataDrawerRef, {}>(
 						>
 							{selectedFile
 								? selectedFile.name
-								: m.SelectDatabaseFile()}
+								: mode === "logical"
+									? m.SelectJsonFile()
+									: m.SelectDatabaseFile()}
 						</Button>
 						{error && (
 							<p className="text-sm text-red-500 text-center">
 								{error}
 							</p>
 						)}
-						<p className="text-xs text-muted-foreground text-center text-balance">
-							{m.ImportDataWarning()}
-						</p>
+						<div className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-[12px] leading-relaxed text-orange-900 dark:text-orange-200">
+							{mode === "logical" ? m.ImportJsonWarning() : m.ImportBackupWarning()}
+						</div>
 					</div>
 					<DrawerFooter className="grid grid-cols-1">
 						<Button

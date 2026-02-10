@@ -20,6 +20,10 @@ import {
   type ImportDataDrawerRef,
 } from "@/components/custom/v2/import-data-drawer";
 import {
+  ImportExportDrawer,
+  type ImportExportDrawerRef,
+} from "@/components/custom/v2/import-export-drawer";
+import {
   PrivateKeyDrawer,
   type PrivateKeyDrawerRef,
 } from "@/components/custom/v2/private-key-drawer";
@@ -42,7 +46,6 @@ import {
   IconKeyFilled,
   IconLanguageHiragana,
   IconNumber123,
-  IconSquareArrowUpFilled,
   IconTagsFilled,
   IconTrashXFilled,
   type TablerIcon,
@@ -52,7 +55,7 @@ import type React from "react";
 
 import { useRef } from "react";
 
-import { exportData } from "@/lib/export";
+import { exportBackupData, exportLogicalData } from "@/lib/export";
 
 function SettingsRow({
   title,
@@ -88,6 +91,8 @@ export function SettingsScreen() {
   const tagDrawerRef = useRef<TagDrawerRef>(null);
   const eraseDataDrawerRef = useRef<EraseDataDrawerRef>(null);
   const importDataDrawerRef = useRef<ImportDataDrawerRef>(null);
+  const importLogicalDataDrawerRef = useRef<ImportDataDrawerRef>(null);
+  const importExportDrawerRef = useRef<ImportExportDrawerRef>(null);
   const privateKeyDrawerRef = useRef<PrivateKeyDrawerRef>(null);
   const restoreKeyDrawerRef = useRef<RestoreKeyDrawerRef>(null);
 
@@ -244,40 +249,6 @@ export function SettingsScreen() {
                   </Button>
                 </SettingsRow>
                 <SettingsRow
-                  Icon={IconSquareArrowUpFilled}
-                  iconBackground="bg-cyan-500"
-                  title={m.ExportData()}
-                >
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded"
-                    onClick={() => {
-                      exportData();
-                    }}
-                  >
-                    {m.Export()}{" "}
-                    <IconChevronRight className="size-4 ml-1 relative -mr-1" />
-                  </Button>
-                </SettingsRow>
-                <SettingsRow
-                  Icon={IconDatabaseImport}
-                  iconBackground="bg-lime-500"
-                  title={m.ImportData()}
-                >
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded"
-                    onClick={() => {
-                      importDataDrawerRef.current?.openDrawer();
-                    }}
-                  >
-                    {m.Import()}{" "}
-                    <IconChevronRight className="size-4 ml-1 relative -mr-1" />
-                  </Button>
-                </SettingsRow>
-                <SettingsRow
                   Icon={IconTrashXFilled}
                   iconBackground="bg-red-500"
                   title={m.EraseData()}
@@ -292,6 +263,23 @@ export function SettingsScreen() {
                   >
                     {m.Erase()}{" "}
                     <IconChevronRight className="size-4 ml-1  relative -mr-1" />
+                  </Button>
+                </SettingsRow>
+                <SettingsRow
+                  Icon={IconDatabaseImport}
+                  iconBackground="bg-cyan-600"
+                  title={`${m.Import()} / ${m.Export()}`}
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded"
+                    onClick={() => {
+                      importExportDrawerRef.current?.openDrawer();
+                    }}
+                  >
+                    {m.Manage()}{" "}
+                    <IconChevronRight className="size-4 ml-1 relative -mr-1" />
                   </Button>
                 </SettingsRow>
               </div>
@@ -349,6 +337,22 @@ export function SettingsScreen() {
       <TagDrawer ref={tagDrawerRef} />
       <EraseDataDrawer ref={eraseDataDrawerRef} />
       <ImportDataDrawer ref={importDataDrawerRef} />
+      <ImportDataDrawer ref={importLogicalDataDrawerRef} mode="logical" />
+      <ImportExportDrawer
+        ref={importExportDrawerRef}
+        onExportBackup={() => {
+          exportBackupData();
+        }}
+        onImportBackup={() => {
+          importDataDrawerRef.current?.openDrawer();
+        }}
+        onExportJson={() => {
+          exportLogicalData();
+        }}
+        onImportJson={() => {
+          importLogicalDataDrawerRef.current?.openDrawer();
+        }}
+      />
       <PrivateKeyDrawer ref={privateKeyDrawerRef} />
       <RestoreKeyDrawer ref={restoreKeyDrawerRef} />
     </>

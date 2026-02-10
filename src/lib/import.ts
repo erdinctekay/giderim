@@ -1,3 +1,18 @@
+import {
+	type TEntryId,
+	type TExclusionId,
+	type TGroupId,
+	type TRecurringConfigId,
+	type TTagId,
+	decodeAmount,
+	decodeBoolean,
+	decodeCurrency,
+	decodeDate,
+	decodeName,
+	evolu,
+} from "@/evolu-db";
+import { cast } from "@evolu/react";
+
 const IMPORT_DB_NAME = "giderim-pending-import";
 const IMPORT_STORE_NAME = "pending-db";
 const IMPORT_FLAG_KEY = "giderim-pending-db-import";
@@ -10,6 +25,221 @@ const OPAQUE_DIR_NAME = ".opaque";
 
 /** The SAH Pool default capacity — must match sqlite-wasm's initialCapacity. */
 const SAH_POOL_INITIAL_CAPACITY = 6;
+
+type TLogicalBackup = {
+	version: 1;
+	exportedAt: string;
+	groups: Array<{
+		id: string;
+		name: string;
+		icon: string | null;
+	}>;
+	tags: Array<{
+		id: string;
+		name: string;
+		suggestId: string | null;
+		color: string | null;
+		icon: string | null;
+	}>;
+	recurringConfigs: Array<{
+		id: string;
+		frequency: "week" | "month" | "year";
+		interval: number;
+		every: number;
+		startDate: string | Date;
+		endDate: string | Date | null;
+	}>;
+	entries: Array<{
+		id: string;
+		date: string | Date;
+		type: "income" | "expense";
+		name: string;
+		amount: string;
+		fullfilled: number | boolean;
+		currencyCode: string;
+		recurringId: string | null;
+		groupId: string | null;
+		tagId: string | null;
+	}>;
+	exclusions: Array<{
+		id: string;
+		recurringId: string;
+		date: string | Date;
+		index: number | null;
+		modifiedDate: string | Date | null;
+		reason: "deletion" | "modification";
+		applyToSubsequents: number | boolean;
+		modifiedEntryId: string | null;
+	}>;
+};
+
+const toBoolean = (value: number | boolean | null | undefined): boolean => {
+	if (typeof value === "boolean") return value;
+	return Number(value ?? 0) === 1;
+};
+
+async function softDeleteCurrentData(): Promise<void> {
+	const [groups, tags, recurringConfigs, entries, exclusions] = await Promise.all([
+		evolu.loadQuery(
+			evolu.createQuery((db) =>
+				db
+					.selectFrom("entryGroup")
+					.select(["id"])
+					.where("isDeleted", "is not", cast(true)),
+			),
+		),
+		evolu.loadQuery(
+			evolu.createQuery((db) =>
+				db
+					.selectFrom("entryTag")
+					.select(["id"])
+					.where("isDeleted", "is not", cast(true)),
+			),
+		),
+		evolu.loadQuery(
+			evolu.createQuery((db) =>
+				db
+					.selectFrom("recurringConfig")
+					.select(["id"])
+					.where("isDeleted", "is not", cast(true)),
+			),
+		),
+		evolu.loadQuery(
+			evolu.createQuery((db) =>
+				db
+					.selectFrom("entry")
+					.select(["id"])
+					.where("isDeleted", "is not", cast(true)),
+			),
+		),
+		evolu.loadQuery(
+			evolu.createQuery((db) =>
+				db
+					.selectFrom("exclusion")
+					.select(["id"])
+					.where("isDeleted", "is not", cast(true)),
+			),
+		),
+	]);
+
+	groups.rows.forEach((row) => {
+		if (!row.id) return;
+		evolu.update("entryGroup", { id: row.id as TGroupId, isDeleted: true });
+	});
+	tags.rows.forEach((row) => {
+		if (!row.id) return;
+		evolu.update("entryTag", { id: row.id as TTagId, isDeleted: true });
+	});
+	recurringConfigs.rows.forEach((row) => {
+		if (!row.id) return;
+		evolu.update("recurringConfig", {
+			id: row.id as TRecurringConfigId,
+			isDeleted: true,
+		});
+	});
+	entries.rows.forEach((row) => {
+		if (!row.id) return;
+		evolu.update("entry", { id: row.id as TEntryId, isDeleted: true });
+	});
+	exclusions.rows.forEach((row) => {
+		if (!row.id) return;
+		evolu.update("exclusion", { id: row.id as TExclusionId, isDeleted: true });
+	});
+}
+
+/**
+ * Import logical JSON data (owner-agnostic).
+ * Keeps current owner/mnemonic and recreates all business rows.
+ */
+export async function importLogicalData(file: File): Promise<void> {
+	const text = await file.text();
+	let payload: TLogicalBackup;
+	try {
+		payload = JSON.parse(text) as TLogicalBackup;
+	} catch {
+		throw new Error("Invalid JSON file.");
+	}
+
+	if (!payload || payload.version !== 1) {
+		throw new Error("Unsupported data file version.");
+	}
+
+	await softDeleteCurrentData();
+
+	const groupMap = new Map<string, TGroupId>();
+	const tagMap = new Map<string, TTagId>();
+	const recurringMap = new Map<string, TRecurringConfigId>();
+	const entryMap = new Map<string, TEntryId>();
+
+	payload.groups.forEach((group) => {
+		const created = evolu.create("entryGroup", {
+			name: decodeName(group.name),
+			icon: group.icon ?? null,
+		});
+		groupMap.set(group.id, created.id as TGroupId);
+	});
+
+	payload.tags.forEach((tag) => {
+		const created = evolu.create("entryTag", {
+			name: decodeName(tag.name),
+			suggestId: tag.suggestId ?? null,
+			color: tag.color ?? null,
+			icon: tag.icon ?? null,
+		});
+		tagMap.set(tag.id, created.id as TTagId);
+	});
+
+	payload.recurringConfigs.forEach((config) => {
+		const created = evolu.create("recurringConfig", {
+			frequency: config.frequency,
+			interval: config.interval,
+			every: config.every,
+			startDate: decodeDate(new Date(config.startDate).toISOString()),
+			endDate: config.endDate
+				? decodeDate(new Date(config.endDate).toISOString())
+				: null,
+		});
+		recurringMap.set(config.id, created.id as TRecurringConfigId);
+	});
+
+	payload.entries.forEach((entry) => {
+		const created = evolu.create("entry", {
+			date: decodeDate(new Date(entry.date).toISOString()),
+			type: entry.type,
+			name: decodeName(entry.name),
+			amount: decodeAmount(entry.amount),
+			fullfilled: decodeBoolean(toBoolean(entry.fullfilled) ? 1 : 0),
+			currencyCode: decodeCurrency(entry.currencyCode),
+			recurringId: entry.recurringId
+				? (recurringMap.get(entry.recurringId) ?? null)
+				: null,
+			groupId: entry.groupId ? (groupMap.get(entry.groupId) ?? null) : null,
+			tagId: entry.tagId ? (tagMap.get(entry.tagId) ?? null) : null,
+		});
+		entryMap.set(entry.id, created.id as TEntryId);
+	});
+
+	payload.exclusions.forEach((exclusion) => {
+		const mappedRecurringId = recurringMap.get(exclusion.recurringId);
+		if (!mappedRecurringId) return;
+
+		evolu.create("exclusion", {
+			recurringId: mappedRecurringId,
+			date: decodeDate(new Date(exclusion.date).toISOString()),
+			index: exclusion.index ?? null,
+			modifiedDate: exclusion.modifiedDate
+				? decodeDate(new Date(exclusion.modifiedDate).toISOString())
+				: null,
+			reason: exclusion.reason,
+			applyToSubsequents: decodeBoolean(
+				toBoolean(exclusion.applyToSubsequents) ? 1 : 0,
+			),
+			modifiedEntryId: exclusion.modifiedEntryId
+				? (entryMap.get(exclusion.modifiedEntryId) ?? null)
+				: null,
+		});
+	});
+}
 
 /**
  * Open (or create) the IndexedDB used for staging import files.
