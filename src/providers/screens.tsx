@@ -73,25 +73,24 @@ export const ScreensProvider: React.FC<{ children: ReactNode }> = ({ children })
 	const [rates, setRates] = useState<Record<string, number>>({});
 	const { mainCurrency } = useLocalization();
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: we need to fetch rates when the viewing index changes
 	useEffect(() => {
 		requestRates(mainCurrency).then((data) => {
 			setRates(data);
 		});
-	}, [viewingIndex, mainCurrency]);
+	}, [mainCurrency]);
 
 	const CALCULATIONS = useMemo(
 		() =>
 			getCalculations({
 				rates,
 				viewportStartDate,
-				viewportEndDate,
 				populatedEntries,
 				groupFilters: activeFilters.filter((f) => f.type === "group").map((f) => f.id as TGroupId),
 				tagFilters: activeFilters.filter((f) => f.type === "tag").map((f) => f.id as TTagId),
 				mainCurrency,
+				requiredIndexes: [viewingIndex, currentMonthIndex],
 			}),
-		[rates, mainCurrency, viewportStartDate, viewportEndDate, populatedEntries, activeFilters],
+		[rates, mainCurrency, viewportStartDate, populatedEntries, activeFilters, viewingIndex, currentMonthIndex],
 	);
 
 	return (
