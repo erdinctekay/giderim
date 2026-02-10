@@ -20,6 +20,18 @@ import App from "./App.tsx";
 import "./index.css";
 import { processPendingImport } from "@/lib/import";
 
+let redirecting = false;
+const appUrl = import.meta.env.VITE_APP_URL;
+if (!import.meta.env.DEV && appUrl) {
+	const canonical = new URL(appUrl);
+	if (window.location.origin !== canonical.origin) {
+		redirecting = true;
+		window.location.replace(
+			canonical.origin + window.location.pathname + window.location.search,
+		);
+	}
+}
+
 const localTheme =
 	(localStorage.getItem(storageKeys.theme) as Theme) || "system";
 const localLang =
@@ -56,4 +68,4 @@ async function bootstrap() {
 	);
 }
 
-bootstrap();
+if (!redirecting) bootstrap();
