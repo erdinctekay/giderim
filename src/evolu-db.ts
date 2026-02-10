@@ -118,7 +118,7 @@ const decodeTagId = S.decodeSync(TagId);
 
 export const evolu = createEvolu(EvoluDB, {
   // minimumLogLevel: "trace",
-  // name: "gider.im",
+  // name: "giderim",
   indexes,
   ...(import.meta.env.VITE_SYNC_URL && {
   	syncUrl: import.meta.env.VITE_SYNC_URL,

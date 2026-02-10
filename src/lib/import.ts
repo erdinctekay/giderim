@@ -2,7 +2,6 @@ const IMPORT_DB_NAME = "giderim-pending-import";
 const IMPORT_STORE_NAME = "pending-db";
 const IMPORT_FLAG_KEY = "giderim-pending-db-import";
 
-const HEADER_MAX_PATH_SIZE = 512;
 const HEADER_OFFSET_DATA = 4096;
 
 const EVOLU_DB_PATH = "/evolu1.db";
@@ -107,59 +106,19 @@ async function clearImportDB(): Promise<void> {
 }
 
 /**
- * Debug: dump the current OPFS state to console.
+ * Debug: verify OPFS VFS directory structure exists.
+ * Add a loop over opaqueDir entries + console.log when debugging import/OPFS.
  */
 export async function debugOPFS(): Promise<void> {
 	try {
 		const root = await navigator.storage.getDirectory();
-		console.log("[debugOPFS] OPFS root obtained");
-
 		let vfsDir: FileSystemDirectoryHandle;
 		try {
 			vfsDir = await root.getDirectoryHandle(OPFS_VFS_DIR);
 		} catch {
-			console.log(`[debugOPFS] No "${OPFS_VFS_DIR}" directory found`);
 			return;
 		}
-
-		let opaqueDir: FileSystemDirectoryHandle;
-		try {
-			opaqueDir = await vfsDir.getDirectoryHandle(OPAQUE_DIR_NAME);
-		} catch {
-			console.log(
-				`[debugOPFS] No "${OPAQUE_DIR_NAME}" directory found inside "${OPFS_VFS_DIR}"`,
-			);
-			return;
-		}
-
-		const files: { name: string; size: number; path: string }[] = [];
-		for await (const [name, handle] of opaqueDir as unknown as AsyncIterable<
-			[string, FileSystemHandle]
-		>) {
-			if (handle.kind !== "file") continue;
-			const fileHandle = handle as FileSystemFileHandle;
-			const file = await fileHandle.getFile();
-			let path = "(unreadable)";
-			if (file.size >= HEADER_MAX_PATH_SIZE) {
-				const headerBytes = new Uint8Array(
-					await file.slice(0, HEADER_MAX_PATH_SIZE).arrayBuffer(),
-				);
-				const pathEnd = headerBytes.indexOf(0);
-				path = new TextDecoder().decode(
-					headerBytes.slice(0, Math.max(pathEnd, 0)),
-				);
-				if (!path) path = "(empty)";
-			}
-			files.push({ name, size: file.size, path });
-		}
-
-		console.log(`[debugOPFS] Found ${files.length} pool files:`);
-		for (const f of files) {
-			const dataSize = Math.max(f.size - HEADER_OFFSET_DATA, 0);
-			console.log(
-				`[debugOPFS]   "${f.name}" → path="${f.path}", total=${f.size}B, data=${dataSize}B`,
-			);
-		}
+		await vfsDir.getDirectoryHandle(OPAQUE_DIR_NAME);
 	} catch (err) {
 		console.error("[debugOPFS] Error:", err);
 	}
@@ -200,18 +159,8 @@ function extractSQLiteBytes(rawBytes: Uint8Array): Uint8Array | null {
  * Reads the selected file, validates it, stores in IndexedDB, and reloads.
  */
 export async function importDatabase(file: File): Promise<void> {
-	console.log(
-		`[import:phase1] File selected: "${file.name}", size=${file.size}B, type="${file.type}"`,
-	);
-
 	const buffer = await file.arrayBuffer();
 	const rawBytes = new Uint8Array(buffer);
-
-	console.log(
-		`[import:phase1] Raw bytes read: ${rawBytes.length}B, first16=`,
-		Array.from(rawBytes.slice(0, 16)),
-	);
-
 	const sqliteBytes = extractSQLiteBytes(rawBytes);
 	if (!sqliteBytes) {
 		console.error(
@@ -219,24 +168,8 @@ export async function importDatabase(file: File): Promise<void> {
 		);
 		throw new Error("Invalid database file. Expected a SQLite database.");
 	}
-
-	console.log(
-		`[import:phase1] Valid SQLite extracted: ${sqliteBytes.length}B`,
-	);
-
 	await storeImportBytes(sqliteBytes);
-	console.log("[import:phase1] Stored in IndexedDB successfully");
-
-	// Verify the store
-	const verifyBytes = await readImportBytes();
-	const verifyMsg = verifyBytes ? `${verifyBytes.length}B` : "NULL";
-	console.log(`[import:phase1] Verify IndexedDB read: ${verifyMsg}`);
-
 	localStorage.setItem(IMPORT_FLAG_KEY, "true");
-	console.log(
-		`[import:phase1] Flag set: "${localStorage.getItem(IMPORT_FLAG_KEY)}"`,
-	);
-	console.log("[import:phase1] Reloading page...");
 	globalThis.location.reload();
 }
 
@@ -245,17 +178,11 @@ export async function importDatabase(file: File): Promise<void> {
  * Checks for a pending import, writes the database to OPFS, and cleans up.
  */
 export async function processPendingImport(): Promise<boolean> {
-	const flagValue = localStorage.getItem(IMPORT_FLAG_KEY);
-	console.log(`[import:phase2] Flag check: "${flagValue}"`);
-
-	if (flagValue !== "true") {
+	if (localStorage.getItem(IMPORT_FLAG_KEY) !== "true") {
 		return false;
 	}
-
-	console.log("[import:phase2] === PENDING IMPORT DETECTED ===");
-
+	// PENDING IMPORT: write IndexedDB → OPFS via worker → clear flag
 	try {
-		console.log("[import:phase2] Reading from IndexedDB...");
 		const sqliteBytes = await readImportBytes();
 		if (!sqliteBytes) {
 			console.error(
@@ -264,28 +191,12 @@ export async function processPendingImport(): Promise<boolean> {
 			localStorage.removeItem(IMPORT_FLAG_KEY);
 			return false;
 		}
-
-		console.log(
-			`[import:phase2] Read ${sqliteBytes.length}B from IndexedDB`,
-		);
-		console.log(
-			`[import:phase2] SQLite magic check: "${new TextDecoder().decode(sqliteBytes.slice(0, 15))}"`,
-		);
-
-		console.log("[import:phase2] Writing to OPFS via Worker...");
 		await writeToOPFSviaWorker(sqliteBytes);
-		console.log("[import:phase2] OPFS write complete");
-
-		console.log("[import:phase2] Clearing IndexedDB...");
 		await clearImportDB();
-
 		localStorage.removeItem(IMPORT_FLAG_KEY);
-		console.log(
-			"[import:phase2] === IMPORT COMPLETED SUCCESSFULLY ===",
-		);
 		return true;
 	} catch (error) {
-		console.error("[import:phase2] === IMPORT FAILED ===", error);
+		console.error("[import:phase2] IMPORT FAILED", error);
 		localStorage.removeItem(IMPORT_FLAG_KEY);
 		await clearImportDB();
 		return false;
@@ -353,42 +264,20 @@ self.onmessage = async (e) => {
   const { sqliteBytes, vfsDir, opaqueDirName, dbPath, poolCapacity } = e.data;
   try {
     const root = await navigator.storage.getDirectory();
-    console.log("[import:worker] Got OPFS root");
-
-    // Delete existing VFS directory
     try {
       await root.removeEntry(vfsDir, { recursive: true });
-      console.log("[import:worker] Removed existing " + vfsDir);
-    } catch {
-      console.log("[import:worker] No existing " + vfsDir + " to remove");
-    }
-
-    // Create fresh directory structure
+    } catch {}
     const vfsDirHandle = await root.getDirectoryHandle(vfsDir, { create: true });
     const opaqueDir = await vfsDirHandle.getDirectoryHandle(opaqueDirName, { create: true });
-    console.log("[import:worker] Created " + vfsDir + "/" + opaqueDirName + "/");
-
     const bytes = new Uint8Array(sqliteBytes);
-
-    // Pool file 1: The imported database
     const dbFileName = Math.random().toString(36).slice(2);
     const dbFileHandle = await opaqueDir.getFileHandle(dbFileName, { create: true });
     const dbSAH = await dbFileHandle.createSyncAccessHandle();
-
-    // Write SQLite data at offset 4096
     dbSAH.truncate(HEADER_OFFSET_DATA + bytes.byteLength);
     const nWrote = dbSAH.write(bytes, { at: HEADER_OFFSET_DATA });
-
-    // Force journal mode (not WAL) — matches sqlite-wasm importDb behavior
     dbSAH.write(new Uint8Array([1, 1]), { at: HEADER_OFFSET_DATA + 18 });
-
-    // Write the header (path + flags + digest)
     setAssociatedPath(dbSAH, dbPath, SQLITE_OPEN_MAIN_DB);
     dbSAH.close();
-
-    console.log("[import:worker] Pool file 1/" + poolCapacity + ": " + dbFileName + " = " + dbPath + " (" + nWrote + "B data)");
-
-    // Pool files 2..N: Empty placeholders
     for (let i = 2; i <= poolCapacity; i++) {
       const name = Math.random().toString(36).slice(2);
       const fh = await opaqueDir.getFileHandle(name, { create: true });
@@ -396,10 +285,7 @@ self.onmessage = async (e) => {
       sah.truncate(HEADER_OFFSET_DATA);
       setAssociatedPath(sah, "", 0);
       sah.close();
-      console.log("[import:worker] Pool file " + i + "/" + poolCapacity + ": " + name + " = empty");
     }
-
-    console.log("[import:worker] Done. Created " + poolCapacity + " pool files.");
     self.postMessage({ success: true, bytesWritten: nWrote });
   } catch (error) {
     console.error("[import:worker] Error:", error);
@@ -426,14 +312,11 @@ function writeToOPFSviaWorker(sqliteBytes: Uint8Array): Promise<void> {
 		const worker = new Worker(workerUrl);
 
 		worker.onmessage = (e: MessageEvent) => {
-			const { success, error, bytesWritten } = e.data;
+			const { success, error } = e.data;
 			worker.terminate();
 			URL.revokeObjectURL(workerUrl);
 
 			if (success) {
-				console.log(
-					`[import:phase2] Worker wrote ${bytesWritten}B to OPFS`,
-				);
 				resolve();
 			} else {
 				reject(new Error(`Worker OPFS write failed: ${error}`));

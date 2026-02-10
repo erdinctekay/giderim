@@ -3,10 +3,19 @@ import react from "@vitejs/plugin-react-swc";
 import fs from "node:fs";
 import path from "node:path";
 import Unfonts from "unplugin-fonts/vite";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const appUrl = env.VITE_APP_URL;
+  if (!appUrl?.trim()) {
+    throw new Error(
+      "VITE_APP_URL is required for build. Set it in .env or your CI environment (e.g. Netlify).",
+    );
+  }
+
+  return {
   optimizeDeps: {
     exclude: ["@evolu/react", "@sqlite.org/sqlite-wasm"],
     include: ["react-dom"],
@@ -15,7 +24,9 @@ export default defineConfig({
     format: "es",
   },
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __APP_VERSION__: JSON.stringify(
+      (JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")) as { version: string }).version,
+    ),
   },
   server: {
     host: "0.0.0.0",
@@ -32,6 +43,12 @@ export default defineConfig({
       }),
   },
   plugins: [
+    {
+      name: "html-inject-app-url",
+      transformIndexHtml(html) {
+        return html.replace("__VITE_APP_URL__", appUrl);
+      },
+    },
     react(),
     Unfonts({
       fontsource: {
@@ -58,8 +75,8 @@ export default defineConfig({
       },
       manifest: {
         orientation: "portrait",
-        name: "gider.im",
-        short_name: "gider.im",
+        name: "giderim",
+        short_name: "giderim",
         description:
           "Privacy first, local first, no tracking, no ads, no data collection.",
         theme_color: "#ffffff",
@@ -97,4 +114,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+};
 });

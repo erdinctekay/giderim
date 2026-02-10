@@ -1,80 +1,73 @@
-<kbd>
-  <a href="https://github.com/needim/giderim-pwa">
-      <img src="https://gider.im/og.png" alt="Promo">
-  </a>
-</kbd>
-<div>&nbsp;</div>
+# giderim
 
-<p align="center">
-  <a href="https://gider.im">Website</a>
-  ·
-  <a href="https://github.com/needim/giderim-pwa/issues">Issues</a>
-  ·
-  <a href="https://github.com/needim/giderim-pwa/discussions">Discussions</a>
-</p>
+Privacy-focused, local-first income and expense tracking PWA.
 
-## **About**
+[Website](https://giderim.tekay.dev) · [Issues](https://github.com/erdinctekay/gider.im-pwa/issues) · [Discussions](https://github.com/erdinctekay/gider.im-pwa/discussions)
 
-gider.im is a free, privacy-focused income and expense tracking application. It provides a simple, ad-free solution for users. The app emphasizes user privacy, encrypts data locally, and doesn’t track or sell your information.
+## About
 
-## **Vision**
+giderim is a free, privacy-focused income and expense tracking application. Your data is encrypted locally and never leaves your device unless you choose to sync it with your own self-hosted server. No tracking, no ads, no data collection.
 
-My vision is to offer a reliable, free platform for managing personal finances that puts privacy first. I aim to build a sustainable app powered by donations from users who support my mission to provide an ad-free, secure experience. I believe in creating a community around open-source software and giving back to the community.
+This project is a continuation of [gider.im](https://github.com/needim/gider.im-pwa) by [Nedim](https://github.com/needim), who deprecated the original PWA in favor of native apps built with a different stack. I've been using this app with my wife since 2024 and decided to continue maintaining and developing it.
 
-## **Technologies**
+## Technologies
 
 - Built with **React & Vite**
 - Styled with **TailwindCSS**
-- Powered by **[Evolu](https://github.com/evoluhq/evolu)**
-- PWA (Progressive Web App) features for offline support
+- Powered by **[Evolu](https://github.com/evoluhq/evolu)** (local-first SQLite + CRDT sync)
+- PWA (Progressive Web App) for offline support
+- Self-hosted sync server via **@evolu/server**
 
-##  **Features**
+## Features
 
-- [x] **Privacy First**: We don’t track or sell your data. Your information is encrypted locally and stored securely.
-- [x] **Open Source**: Our code is open-source and available for review on GitHub.
-- [x] **Free**: gider.im is free to use, with no hidden costs or fees.
-- [x] **Ad-Free**: Enjoy a clean, ad-free experience without interruptions.
-- [x] **PWA**: Enjoy a seamless experience with our Progressive Web App.
-- [x] **Mark Transactions**: Mark transactions as paid or unpaid for easy tracking.
-- [x] **Simple Design**: A user-friendly interface makes it easy to track your finances.
-- [x] **Secure**: Your data is encrypted and stored securely.
-- [x] **Community-Driven**: We value community feedback and contributions.
-- [x] **Donation-Powered**: Support us through donations to keep the app ad-free and sustainable.
-- [x] **Cross-Platform**: Access gider.im on any device, anywhere.
-- [x] **Offline Support**: Use gider.im even when you’re offline.
-- [x] **Multiple Currencies**: Use gider.im with any currency.
-- [x] **Recurring Transactions**: Set up recurring transactions for easy tracking.
-- [x] **Groups & Tags**: Organize your transactions with groups and tags.
-- [x] **Filters**: Find transactions quickly with filter options.
-- [x] **Dark Mode**: Reduce eye strain with our dark mode feature.
-- [x] **Performance**: Experience fast load times and smooth performance.
-- [x] **Multi-Language Support**: Access gider.im in your preferred language.
-  - [x] English
-  - [x] Turkish
-  - [ ] Soon more languages
-- [ ] **Reports & Analytics**: View detailed reports and analytics for your finances.
-- [ ] **Sync accross devices**: Sync your data across devices for easy access.
-- [ ] **Export & Import Data**: Import your data from other financial apps.
-- [ ] **Security**: Protect your data with biometric authentication.
-- [ ] **Notifications**: Get reminders for upcoming transactions.
-- [ ] **Investment Tracking**: Track your investments and monitor their performance.
-- [ ] **Net Worth Tracking**: Monitor your net worth over time.
-- [ ] **Financial Goals**: Set financial goals and track your progress.
+- **Privacy First**: Your data is encrypted locally and stored securely.
+- **Open Source**: Code is open-source under AGPL-3.0 and available for review.
+- **Free & Ad-Free**: No hidden costs, no ads, no interruptions.
+- **PWA**: Install on any device, works offline.
+- **Cross-Platform**: Access on any device, anywhere.
+- **Multiple Currencies**: Track finances in any currency.
+- **Recurring Transactions**: Set up recurring income and expenses.
+- **Groups & Tags**: Organize transactions with groups and color-coded tags.
+- **Filters**: Find transactions quickly.
+- **Dark Mode**: Easy on the eyes.
+- **Multi-Language**: English and Turkish (more welcome via PR).
+- **Self-hosted Sync**: Optionally sync across devices with your own server.
+- **Import & Export**: Import Evolu database files.
 
-## Socials
+## Development
 
-- **X:** Follow [@needim](https://x.com/needim) for the latest updates.
+```bash
+# Install dependencies
+corepack up
+pnpm install
 
-### **Contributing**
+# Start dev server
+pnpm dev
 
-Thank you for considering contributing to gider.im! Before submitting your contributions, please review our [guidelines here](https://github.com/needim/giderim-pwa/blob/main/CONTRIBUTING.md). This guide contains detailed information on how you can contribute, code formatting, and more.
+# Optional: HTTPS for local development
+# Install mkcert (https://github.com/FiloSottile/mkcert)
+mkcert -install
+mkcert localhost
+```
 
-You can find more information by following the link and easily submit your contributions.
+### Sync Server (optional)
 
-## Contributors
+To run a local sync server for development:
 
-Thank you for your contributions! We appreciate all the contributions from the community.
+```bash
+docker compose up -d
+```
 
-<a href="https://github.com/needim/giderim-pwa/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=needim/giderim-pwa" />
-</a>
+See `server/` directory and `.env.example` for configuration.
+
+## Contributing
+
+Contributions are welcome! Please open an issue first to discuss what you'd like to change. Check out [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+## Credits
+
+Originally created by [Nedim Arabaci](https://github.com/needim) as [gider.im](https://github.com/needim/gider.im-pwa). Continued and maintained by [Erdinc Tekay](https://github.com/erdinctekay).
+
+## License
+
+[AGPL-3.0](LICENSE)

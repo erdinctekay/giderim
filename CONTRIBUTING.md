@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Thank you for considering contributing to this project! Your help is greatly appreciated. This guide will help you understand how to contribute effectively and ensure that your contributions are aligned with the project's goals.
+Thank you for considering contributing to giderim! Your help is greatly appreciated. This guide will help you understand how to contribute effectively and ensure that your contributions are aligned with the project's goals.
 
 ## How to Report Bugs
 
@@ -21,30 +21,35 @@ If you find a bug, please report it by opening an issue on our GitHub repository
 3. **Make your changes**: Implement your feature or bugfix.
 4. **Commit your changes**: Write clear and concise commit messages.
 5. **Push to your fork**: Push your changes to your forked repository.
-6. **Submit a pull request**: Open a pull request on the original repository with a clear description of your changes and any relevant information.
+6. **Submit a pull request**: Open a pull request with a clear description of your changes and any relevant information.
 
 ## Development Flow
 
-To set up the project for development, follow these steps:
-
 1. First, setup package manager & install dependencies.
 
-  ```bash
-  corepack up
-  ```
+```bash
+corepack up
+pnpm install
+```
 
 2. Run the project in development mode.
 
-  ```bash
-  node --run dev #or pnpm dev
-  ```
+```bash
+pnpm dev
+```
 
-3. (Optional) If you want https, install [mkcert](https://github.com/FiloSottile/mkcert) and run the following commands.
+3. (Optional) If you want HTTPS, install [mkcert](https://github.com/FiloSottile/mkcert) and run the following commands.
 
-  ```bash
-  mkcert -install
-  mkcert localhost
-  ```
+```bash
+mkcert -install
+mkcert localhost
+```
+
+4. (Optional) Run a local sync server for development.
+
+```bash
+docker compose up -d
+```
 
 ## Code Style Guidelines
 
@@ -52,5 +57,6 @@ To set up the project for development, follow these steps:
 - Use meaningful variable and function names.
 - Include comments where necessary to explain your code.
 - Ensure your code is well-documented.
+- Use pnpm as the package manager.
 
 Thank you for your contributions! Your efforts help make this project better for everyone.
