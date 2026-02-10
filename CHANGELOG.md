@@ -1,5 +1,11 @@
 # giderim
 
+## 1.0.2
+
+### Patch Changes
+
+- enhance import/export functionality with JSON (logical/entry) and DB (full-backup) support (`2654c7d`)
+
 ## 1.0.1
 
 ### Patch Changes
