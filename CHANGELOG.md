@@ -1,5 +1,11 @@
 # giderim
 
+## 1.0.3
+
+### Patch Changes
+
+- Bump dependencies.
+
 ## 1.0.2
 
 ### Patch Changes

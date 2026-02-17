@@ -1,7 +1,7 @@
 {
 	"name": "giderim",
 	"private": true,
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
 	"scripts": {
 		"dev": "vite --host",
@@ -86,13 +86,13 @@
 		"node": ">=20"
 	},
 	"pnpm": {
-    "overrides": {
-      "sha.js": ">=2.4.12",
+		"overrides": {
+			"sha.js": ">=2.4.12",
 			"cross-spawn": ">=7.0.5",
 			"glob": ">=10.5.0",
 			"solid-js": ">=1.9.4",
 			"esbuild": ">=0.25.0"
-    }
-  },
+		}
+	},
 	"packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
 }
