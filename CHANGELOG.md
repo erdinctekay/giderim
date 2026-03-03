@@ -1,5 +1,11 @@
 # giderim
 
+## 1.0.4
+
+### Patch Changes
+
+- Bump Node.js to 24 and update dependencies.
+
 ## 1.0.3
 
 ### Patch Changes
