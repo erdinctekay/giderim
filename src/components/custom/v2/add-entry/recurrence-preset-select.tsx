@@ -5,7 +5,6 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { useLocalization } from "@/hooks/use-localization";
 import type { EntryCreateSchema } from "@/schemas/entry";
 import {
-	type Icon,
 	IconAdjustmentsHorizontal,
 	IconCheck,
 	IconCircleNumber1,
@@ -38,7 +37,7 @@ type RecurrenceConfig = {
 type Option = {
 	value: RecurrencePreset;
 	label: string;
-	icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<Icon>>;
+	icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
 	config: RecurrenceConfig;
 };
 
